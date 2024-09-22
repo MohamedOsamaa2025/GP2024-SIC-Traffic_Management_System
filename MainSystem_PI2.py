@@ -34,8 +34,9 @@ camera.configure(camera_config)
 # Load YOLOv8 model (pre-trained on COCO dataset)
 model = YOLO('yolov8n.pt')
 
-# Global variable to control which loop is active
+# Global variables to control loops
 active_loop = "main"
+em_command_value = None  # To store the value of "r1" or "r2"
 
 # Function to detect cars in the captured image using YOLOv8
 def detect_cars(image_path):
@@ -65,7 +66,7 @@ def get_traffic_density(num_cars):
 
 # Callback function to handle received MQTT messages
 def on_message(client, userdata, msg):
-    global active_loop
+    global active_loop, em_command_value
 
     if msg.topic == mqtt_topic2:
         light_control = msg.payload.decode()
@@ -86,11 +87,13 @@ def on_message(client, userdata, msg):
     elif msg.topic == mqtt_topic3:
         # Control switching between loops based on message
         em_command = msg.payload.decode()
-        if em_command == "r1" or em_command == "r2":
+        if em_command in ["r1", "r2"]:
             active_loop = "secondary"
+            em_command_value = em_command  # Store the received value
             print(f"Switching to secondary loop: {em_command}.")
         elif em_command == "done":
             active_loop = "main"
+            em_command_value = None  # Reset the command
             print("Returning to main loop.")
 
 # Function to publish traffic density
@@ -135,10 +138,18 @@ def main_loop(client):
 # Secondary loop (to run when 'r1' or 'r2' message is received)
 def secondary_loop():
     while active_loop == "secondary":
-        print("Secondary loop running...") 
-        GPIO.output(RED_LED, GPIO.LOW)
-        GPIO.output(YELLOW_LED, GPIO.LOW)
-        GPIO.output(GREEN_LED, GPIO.HIGH)
+        if em_command_value == "r1":
+            print("Secondary loop running for r1...")
+            # Perform tasks specific to "r1"
+            GPIO.output(GREEN_LED, GPIO.HIGH)
+            GPIO.output(RED_LED, GPIO.LOW)
+            GPIO.output(YELLOW_LED, GPIO.LOW)
+        elif em_command_value == "r2":
+            print("Secondary loop running for r2...")
+            # Perform tasks specific to "r2"
+            GPIO.output(RED_LED, GPIO.HIGH)
+            GPIO.output(GREEN_LED, GPIO.LOW)
+            GPIO.output(YELLOW_LED, GPIO.LOW)
         time.sleep(1)
 
 # Main program
