@@ -1,4 +1,3 @@
-
 import time
 import paho.mqtt.client as mqtt
 import RPi.GPIO as GPIO
@@ -10,7 +9,8 @@ import cv2
 mqtt_server = "7ce86da1d434455a898586cc107e7e46.s1.eu.hivemq.cloud"
 mqtt_topic1 = "TrafficDensity1"
 mqtt_topic2 = "AdaptiveLights1"
-mqtt_topic3 = "em"  # New topic for controlling the loops
+mqtt_topic3 = "em"  # Topic for controlling secondary loop
+mqtt_topic4 = "ACC"  # New topic for controlling the third loop
 mqtt_user = "MohamedBakr"
 mqtt_password = "IOTEng2025#"
 
@@ -37,6 +37,7 @@ model = YOLO('yolov8n.pt')
 # Global variables to control loops
 active_loop = "main"
 em_command_value = None  # To store the value of "r1" or "r2"
+acc_command_value = None  # To store the value of "road1" or "road2"
 
 # Function to detect cars in the captured image using YOLOv8
 def detect_cars(image_path):
@@ -66,7 +67,7 @@ def get_traffic_density(num_cars):
 
 # Callback function to handle received MQTT messages
 def on_message(client, userdata, msg):
-    global active_loop, em_command_value
+    global active_loop, em_command_value, acc_command_value
 
     if msg.topic == mqtt_topic2:
         light_control = msg.payload.decode()
@@ -85,7 +86,7 @@ def on_message(client, userdata, msg):
             GPIO.output(GREEN_LED, GPIO.HIGH)
     
     elif msg.topic == mqtt_topic3:
-        # Control switching between loops based on message
+        # Control switching between loops based on message for emergency ("em" topic)
         em_command = msg.payload.decode()
         if em_command in ["r1", "r2"]:
             active_loop = "secondary"
@@ -95,6 +96,18 @@ def on_message(client, userdata, msg):
             active_loop = "main"
             em_command_value = None  # Reset the command
             print("Returning to main loop.")
+    
+    elif msg.topic == mqtt_topic4:
+        # Control switching for the ACC loop
+        acc_command = msg.payload.decode()
+        if acc_command in ["road1", "road2"]:
+            active_loop = "acc"
+            acc_command_value = acc_command
+            print(f"Switching to ACC loop: {acc_command}.")
+        elif acc_command == "safe":
+            active_loop = "main"
+            acc_command_value = None  # Reset the ACC command
+            print("Returning to main loop from ACC.")
 
 # Function to publish traffic density
 def publish_traffic_density(client, num_cars):
@@ -120,7 +133,8 @@ def setup_mqtt():
     client.on_message = on_message
     client.connect(mqtt_server, 8883)
     client.subscribe(mqtt_topic2)
-    client.subscribe(mqtt_topic3)  # Subscribe to the control topic
+    client.subscribe(mqtt_topic3)  # Subscribe to the control topic for emergency
+    client.subscribe(mqtt_topic4)  # Subscribe to the control topic for ACC
     client.loop_start()
     return client
 
@@ -140,16 +154,31 @@ def secondary_loop():
     while active_loop == "secondary":
         if em_command_value == "r1":
             print("Secondary loop running for r1...")
-            # Perform tasks specific to "r1"
             GPIO.output(GREEN_LED, GPIO.HIGH)
             GPIO.output(RED_LED, GPIO.LOW)
             GPIO.output(YELLOW_LED, GPIO.LOW)
         elif em_command_value == "r2":
             print("Secondary loop running for r2...")
-            # Perform tasks specific to "r2"
             GPIO.output(RED_LED, GPIO.HIGH)
             GPIO.output(GREEN_LED, GPIO.LOW)
             GPIO.output(YELLOW_LED, GPIO.LOW)
+        time.sleep(1)
+
+# ACC loop (to run when 'road1' or 'road2' message is received)
+def acc_loop():
+    while active_loop == "acc":
+        if acc_command_value == "road1":
+            print("ACC loop running for road1...")
+            # Perform actions specific to road1
+            GPIO.output(YELLOW_LED, GPIO.LOW)
+            GPIO.output(RED_LED, GPIO.HIGH)
+            GPIO.output(GREEN_LED, GPIO.LOW)
+        elif acc_command_value == "road2":
+            print("ACC loop running for road2...")
+            # Perform actions specific to road2
+            GPIO.output(GREEN_LED, GPIO.HIGH)            
+            GPIO.output(YELLOW_LED, GPIO.LOW)
+            GPIO.output(RED_LED, GPIO.LOW)
         time.sleep(1)
 
 # Main program
@@ -161,6 +190,8 @@ def main():
                 main_loop(client)
             elif active_loop == "secondary":
                 secondary_loop()
+            elif active_loop == "acc":
+                acc_loop()
     except KeyboardInterrupt:
         print("Exiting...")
     finally:
@@ -170,3 +201,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
