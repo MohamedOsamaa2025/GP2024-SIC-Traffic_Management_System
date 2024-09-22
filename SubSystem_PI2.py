@@ -4,7 +4,6 @@ import paho.mqtt.client as mqtt
 
 # MQTT Broker details
 mqtt_server = "7ce86da1d434455a898586cc107e7e46.s1.eu.hivemq.cloud"
-# mqtt_topic_road_1 = "road_1"
 mqtt_topic_road_2 = "road_2"
 mqtt_user = "MohamedBakr"
 mqtt_password = "IOTEng2025#"
