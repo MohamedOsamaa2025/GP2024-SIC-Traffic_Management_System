@@ -1,4 +1,4 @@
-# GradProj_SIC
+# Smart traffic management system 
 
 1. Adaptive Traffic Light System: Utilizes computer vision powered by the YOLOv8 machine learning model to detect vehicle density and adjust traffic lights accordingly. This helps manage traffic flow efficiently based on real-time conditions.
 2. Emergency Vehicle Response System: Sends notifications via the Pushbullet app to prioritize emergency vehicles. Upon receiving a message, the system adjusts the traffic lights to ensure a clear route for the vehicle.
