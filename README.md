@@ -1,7 +1,16 @@
-# Smart traffic management system 
+# GP2024-SIC-Traffic_Management_System
 
-1. Adaptive Traffic Light System: Utilizes computer vision powered by the YOLOv8 machine learning model to detect vehicle density and adjust traffic lights accordingly. This helps manage traffic flow efficiently based on real-time conditions.
-2. Emergency Vehicle Response System: Sends notifications via the Pushbullet app to prioritize emergency vehicles. Upon receiving a message, the system adjusts the traffic lights to ensure a clear route for the vehicle.
-3. Accident Detection System: Uses an IMU sensor to detect accidents and determines the location based on RSSI (signal strength). The system then prioritizes the adaptive traffic lights for the accident area and sends an emergency alert to the Pushbullet app.
+The Smart Traffic Management System is an integrated solution designed to optimize 
+urban mobility through real-time data and intelligent automation. It features an Adaptive 
+Traffic Light System that leverages computer vision and the YOLOv8 machine learning 
+model to detect vehicle density and dynamically adjust traffic signals for optimal flow. To 
+support emergency response, the system incorporates an Emergency Vehicle Response 
+System, which uses Pushbullet notifications to detect emergency vehicle presence and 
+reconfigure traffic lights to clear their path. Additionally, an Accident Detection System 
+employs an IMU sensor for crash detection and RSSI-based localization, enabling the 
+system to prioritize traffic flow around the incident and immediately send alerts via 
+Pushbullet. All components communicate seamlessly using MQTT, are orchestrated 
+through Node-RED, and monitored in real time via the Node-RED dashboard, ensuring 
+centralized control and enhanced traffic safety.
 
-All systems communicate using MQTT, are managed through Node-RED, and visualized on the Node-RED dashboard.
+![image](https://github.com/user-attachments/assets/512e5194-4414-4479-9a9f-a144538c82bd)
